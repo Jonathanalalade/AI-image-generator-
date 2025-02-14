@@ -1,36 +1,47 @@
-import { AnthropicStream, StreamingTextResponse, Message } from 'ai';
 import Anthropic from '@anthropic-ai/sdk';
+
+export const runtime = 'edge';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
-export const runtime = "edge";
-
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  
-  // Convert the messages to Anthropic's format
-  const anthropicMessages = messages.map((message: Message) => ({
-    role: message.role === 'user' ? 'user' : 'assistant',
-    content: message.content,
-  }));
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return new Response('Missing Anthropic API key', { status: 400 });
+  }
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
-      max_tokens: 1024,
-      messages: anthropicMessages,
-      stream: true,
-    });
+    const { messages } = await req.json();
     
-    const stream = AnthropicStream(response);
-    return new StreamingTextResponse(stream);
-  } catch (error) {
-    console.error('Anthropic API error:', error);
-    return new Response(JSON.stringify({ error: 'Error processing your request' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
+    const response = await anthropic.messages.create({
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 1024,
+      messages: messages.map((message: any) => ({
+        role: message.role,
+        content: message.content,
+      })),
     });
+
+    return new Response(JSON.stringify({ 
+      text: response.content[0].text,
+      id: response.id 
+    }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error: any) {
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error?.message || 'An error occurred',
+        details: error?.toString() 
+      }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }

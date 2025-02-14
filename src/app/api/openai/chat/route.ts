@@ -1,15 +1,46 @@
-import { openai } from "@ai-sdk/openai";
-import { convertToCoreMessages, streamText } from "ai";
+import OpenAI from 'openai';
 
-export const runtime = "edge";
+export const runtime = 'edge';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  const result = await streamText({
-    model: openai("gpt-4o"),
-    messages: convertToCoreMessages(messages),
-    system: "You are a helpful AI assistant",
-  });
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response('Missing OpenAI API key', { status: 400 });
+  }
 
-  return result.toDataStreamResponse();
+  try {
+    const { messages } = await req.json();
+    
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: messages.map((message: any) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    });
+
+    return new Response(JSON.stringify({ 
+      text: response.choices[0].message.content,
+      id: response.id 
+    }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error: any) {
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error?.message || 'An error occurred',
+        details: error?.toString() 
+      }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
 }
