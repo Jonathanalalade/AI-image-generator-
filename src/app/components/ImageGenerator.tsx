@@ -2,6 +2,7 @@
 
 import { ImageIcon, Download, Copy, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState('');
@@ -116,10 +117,13 @@ export default function ImageGenerator() {
               key={`image-${index}`}
               className="aspect-square rounded-lg overflow-hidden border border-gray-200 relative group"
             >
-              <img
+              <Image
                 src={url}
                 alt={`Generated image ${index + 1}`}
                 className="w-full h-full object-cover"
+                width={512}
+                height={512}
+                unoptimized
               />
               <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button

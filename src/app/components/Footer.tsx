@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 flex flex-col items-center text-center relative z-10">
         <h2 className="text-6xl font-semibold mb-8 text-gray-800">Get In Touch</h2>
         <p className="text-gray-400 max-w-3xl text-xl mb-12">
-          Although I'm not currently looking for any new opportunities, my inbox is always open. Whether you have a question or just want to say hi, I'll try my best to get back to you!
+          Although I&apos;m not currently looking for any new opportunities, my inbox is always open. Whether you have a question or just want to say hi, I&apos;ll try my best to get back to you!
         </p>
         <Link 
           href="mailto:hello@jonathanalalade.com" 
